@@ -42,6 +42,7 @@ def makeProjectDirectories(dirname):
     mkdir(dirname + "/app/models")
     mkdir(dirname + "/app/routes")
     mkdir(dirname + "/app/controllers")
+    mkdir(dirname + "/app/views")
     mkdir(dirname + "/config")
     mkdir(dirname + "/public")
 
