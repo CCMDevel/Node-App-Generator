@@ -5,12 +5,14 @@ import os
 import argparse
 import subprocess
 
+key_dirname = 'dirname'
+key_name = 'name'
+key_port = 'port'
+
 def parse_args():
     description = "Creates an empty Node web app project"
-    project_name = 'project_name'
-    port = 'port'
     
-    help_project_name = ("The name of the project to be "
+    help_name = ("The name of the project to be "
         "created. White space will be replaced with underscores (i.e. 'Project"
         "Name' will result in the directory of 'Project_Name' and files of" 
         "'project_name.something.extension'"
@@ -19,8 +21,8 @@ def parse_args():
     help_port = ("The port that this project will run on. Must be an integer.")
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument(project_name, help=help_project_name)
-    parser.add_argument(port, type=int, help=help_port)
+    parser.add_argument(key_name, help=help_name)
+    parser.add_argument(key_port, type=int, help=help_port)
 
     return parser.parse_args()
 
@@ -43,17 +45,16 @@ def makeProjectDirectories(dirname):
     mkdir(dirname + "/config")
     mkdir(dirname + "/public")
 
-def createAppFile(project_name, port):
-    filename = project_name + "/" + project_name + ".js"
+def createAppFile(data):
+    filename = data[key_dirname] + "/" + data[key_name] + ".js"
     app_file = open(filename, "w")
     
-    data = {'port' : str(port), 'name' : project_name}
     contents = """var port = {port};
-var app = require('./config/{name}.app.js');
-var db = require('./config/{name}.db.js');
+var app = require('./config/{name}.express.js');
+var db = require('./config/{name}.mongoose.js');
 
 db = db();
-app = app(__homeDir + "/public");
+app = app(__dirname + "/public");
 
 app.set('port', port);
 app.listen(app.get('port'), function(){{
@@ -65,12 +66,11 @@ app.listen(app.get('port'), function(){{
     app_file.close()
     print('Created ' + filename)
 
-def createExpressFile(project_name):
-    filename = project_name + "/config/" + project_name + ".app.js"
+def createExpressFile(data):
+    filename = data[key_dirname] + "/config/" + data[key_name] + ".express.js"
     express_file = open(filename, "w")
     
-    data = {'name' : project_name}
-    content = """var {name}_routes = require('{name}.routes.js');
+    content = """var {name}_routes = require('./{name}.routes.js');
 var express = require('express');
 var morgan = require('morgan');
 var bodyParser = require('body-parser');
@@ -91,11 +91,10 @@ module.exports = function(publicDir){{
     express_file.close()
     print('Created ' + filename) 
 
-def createRoutesFile(project_name):
-    filename = project_name + "/config/" + project_name + ".routes.js"
+def createRoutesFile(data):
+    filename = data[key_dirname] + "/config/" + data[key_name] + ".routes.js"
     routes_file = open(filename, "w")
     
-    data = {'name' : project_name}
     content = """module.exports = function(app, publicDir){{
     console.log('    initializing routes...');
 
@@ -114,15 +113,41 @@ def createRoutesFile(project_name):
     routes_file.close()
     print('Created ' + filename) 
 
+def createMongooseFile(data):
+    filename = data[key_dirname] + "/config/" + data[key_name] + ".mongoose.js"
+    mongoose_file = open(filename, "w")
+    
+    content = """var mongoose = require('mongoose');
+
+module.exports = function(){{
+    var db = mongoose.connect('mongodb://localhost/{name}_dev');
+
+    var modelsDir = '../app/models/';
+
+//    require(modelsDir + 'something.model.js');
+
+    return db;    
+}};""".format(**data)
+    mongoose_file.write(content)
+    mongoose_file.close()
+    print('Created ' + filename) 
+
 def main():
     args = parse_args()
-    project_name = args.project_name
+    name = args.name
     port = args.port
-    print("Creating new Node project '" + project_name + "'")
-    makeProjectDirectories(project_name)
-    createAppFile(project_name, port)
-    createExpressFile(project_name)
-    createRoutesFile(project_name)
+
+    data = { key_dirname : name, key_port : str(port), key_name : name.lower() }
+    
+    print("Creating new Node project '" + name + "'")
+    
+    makeProjectDirectories(data[key_dirname])
+    createAppFile(data)
+    createExpressFile(data)
+    createRoutesFile(data)
+    createMongooseFile(data)
+
+    print("Done.")
 
 print(os.getcwd())
 main()
