@@ -106,7 +106,7 @@ def createRoutesFile(data):
 
     var routesDir = '../app/routes/';
 
-//    require(routesDir + 'something.routes.js');
+//    require(routesDir + 'something.routes.js')(app);
 
     console.log('    routes initialized.');
 }};""".format(**data)
