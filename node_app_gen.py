@@ -45,6 +45,9 @@ def makeProjectDirectories(dirname):
     mkdir(dirname + "/app/views")
     mkdir(dirname + "/config")
     mkdir(dirname + "/public")
+    mkdir(dirname + "/public/views")
+    mkdir(dirname + "/public/lib")
+    mkdir(dirname + "/public/js")
 
 def createAppFile(data):
     filename = data[key_dirname] + "/" + data[key_name] + ".js"
@@ -55,7 +58,7 @@ var app = require('./config/{name}.express.js');
 var db = require('./config/{name}.mongoose.js');
 
 db = db();
-app = app(__dirname + "/public");
+app = app(__dirname);
 
 app.set('port', port);
 app.listen(app.get('port'), function(){{
@@ -100,7 +103,7 @@ def createRoutesFile(data):
     console.log('    initializing routes...');
 
     if (publicDir){{
-        app.use(require('express').static(publicDir));
+        app.use(require('express').static(publicDir + "/public"));
         console.log('        /public directory initialized.'); 
     }}
 
