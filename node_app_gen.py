@@ -87,6 +87,7 @@ module.exports = function(publicDir){{
     app.use(bodyParser.urlencoded({{
         extended : true
     }}));
+    app.use(bodyParser.json());
 
     {name}_routes(app, publicDir);
     return app;
